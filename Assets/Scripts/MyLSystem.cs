@@ -75,6 +75,7 @@ public class MyLSystem : MonoBehaviour
 
         myCamera = Camera.main.GetComponent<MyCamera>();
         if (myCamera == null) myCamera = Camera.main.gameObject.AddComponent<MyCamera>();
+        if (GetComponent<MyButtons>() == null) gameObject.AddComponent<MyButtons>();   // quit / background / lock buttons
 
         string folder = Path.Combine(Application.streamingAssetsPath, "LSystems");
         files = Directory.GetFiles(folder, "*.txt");

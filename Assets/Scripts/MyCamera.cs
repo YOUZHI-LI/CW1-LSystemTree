@@ -8,6 +8,7 @@ public class MyCamera : MonoBehaviour
     public float yaw = 0f;
     public float pitch = 0f;
     public bool autoRotate = false;
+    public bool rotationLocked = false;   // true: mouse drag and auto rotate do nothing
 
     Vector3 target;
     float distance = 10f;
@@ -37,13 +38,17 @@ public class MyCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        if (Input.GetMouseButton(1))
+        // When the rotation is locked, the view only zooms.
+        if (!rotationLocked)
         {
-            yaw += Input.GetAxis("Mouse X") * 4f;
-            pitch -= Input.GetAxis("Mouse Y") * 4f;
-            pitch = Mathf.Clamp(pitch, -80f, 80f);
+            if (Input.GetMouseButton(1))
+            {
+                yaw += Input.GetAxis("Mouse X") * 4f;
+                pitch -= Input.GetAxis("Mouse Y") * 4f;
+                pitch = Mathf.Clamp(pitch, -80f, 80f);
+            }
+            if (autoRotate) yaw += 15f * Time.deltaTime;
         }
-        if (autoRotate) yaw += 15f * Time.deltaTime;
 
         float scroll = Input.mouseScrollDelta.y;
         if (scroll != 0f) distance *= (scroll > 0f) ? 0.9f : 1.1f;

@@ -333,18 +333,26 @@ story.append(P(
 story.append(P(
     "<b>Orbit camera.</b> After each rebuild the camera is moved so that the whole model fits on the screen. "
     "Holding the right mouse button rotates the camera around the model, and the wheel zooms."))
+story.append(P(
+    "<b>Icon buttons.</b> A column of three buttons with icons sits next to the menu: one quits the program "
+    "(in the editor it stops Play mode), one cycles the background through light grey, dark and sky blue, and "
+    "one locks the camera rotation so that the view cannot be turned by accident while the parameters are "
+    "changed; the padlock icon shows whether the lock is on. Hovering over a button shows its name. The "
+    "buttons are in a separate short script, MyButtons, and the icons are loaded from a Resources folder."))
 
 # ---------------------------------------------------------------- data classes
 story.append(Paragraph("Data Classes and Structures", h1))
 story.append(P(
-    "The program has four scripts. MyLSystem is the MonoBehaviour that is placed in the scene; the other "
-    "three hold the L-system logic and do not depend on the scene."))
+    "The program has five scripts. MyLSystem is the MonoBehaviour that is placed in the scene, and it adds "
+    "MyCamera and MyButtons when the program starts; the other two hold the L-system logic and do not depend "
+    "on the scene."))
 classes = [["Script", "Contents", "Purpose"],
            ["MyRewriter.cs", "class Rule, static class MyRewriter", "Stores one rule; rewrites the axiom n times"],
            ["MyTurtle.cs", "struct Segment, static class MyTurtle", "Reads the string and returns the line segments"],
            ["MyLSystem.cs", "class MyLSystem : MonoBehaviour", "Loads files, hotkeys, menu, builds the mesh"],
-           ["MyCamera.cs", "class MyCamera : MonoBehaviour", "Frames the model and orbits around it"]]
-story.append(table_caption("The four scripts"))
+           ["MyCamera.cs", "class MyCamera : MonoBehaviour", "Frames the model, orbits around it, rotation lock"],
+           ["MyButtons.cs", "class MyButtons : MonoBehaviour", "Quit, background colour and lock buttons"]]
+story.append(table_caption("The five scripts"))
 story.append(table(classes, [3.2 * cm, 6.0 * cm, 6.7 * cm], mono_cols=(0, 1)))
 story.append(Spacer(1, 8))
 story.append(Paragraph("Rule", h2))

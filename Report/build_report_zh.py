@@ -333,17 +333,23 @@ story.append(P(
     f"（图 {FN['solid']}）。"))
 story.append(P(
     "<b>轨道相机。</b>每次重新生成后，相机都会移动到能完整显示模型的位置。按住鼠标右键可绕模型旋转相机，滚轮用于缩放。"))
+story.append(P(
+    "<b>图标按钮。</b>菜单旁边有一列三个带图标的按钮：一个退出程序（在编辑器中则停止 Play 模式），一个让背景在浅灰、深色和天蓝之间切换，"
+    "一个锁定相机旋转，这样在调整参数时视角不会被意外转动；挂锁图标显示当前是否锁定。鼠标悬停在按钮上时会显示按钮名称。"
+    "这些按钮写在一个单独的简短脚本 MyButtons 中，图标从 Resources 文件夹加载。"))
 
 # ---------------------------------------------------------------- data classes
 story.append(Paragraph("数据类与数据结构", h1))
 story.append(P(
-    "程序共有四个脚本。MyLSystem 是放在场景中的 MonoBehaviour；另外三个脚本负责 L-系统的逻辑，不依赖于场景。"))
+    "程序共有五个脚本。MyLSystem 是放在场景中的 MonoBehaviour，程序启动时它会自动添加 MyCamera 和 MyButtons；"
+    "另外两个脚本负责 L-系统的逻辑，不依赖于场景。"))
 classes = [["脚本", "内容", "用途"],
            ["MyRewriter.cs", "class Rule, static class MyRewriter", "保存一条规则；把公理重写 n 次"],
            ["MyTurtle.cs", "struct Segment, static class MyTurtle", "读取字符串，返回线段列表"],
            ["MyLSystem.cs", "class MyLSystem : MonoBehaviour", "加载文件、热键、菜单、生成网格"],
-           ["MyCamera.cs", "class MyCamera : MonoBehaviour", "让模型充满画面并绕其旋转"]]
-story.append(table_caption("四个脚本"))
+           ["MyCamera.cs", "class MyCamera : MonoBehaviour", "让模型充满画面、绕其旋转、旋转锁定"],
+           ["MyButtons.cs", "class MyButtons : MonoBehaviour", "退出、背景颜色和锁定按钮"]]
+story.append(table_caption("五个脚本"))
 story.append(table(classes, [3.2 * cm, 6.0 * cm, 6.7 * cm], mono_cols=(0, 1)))
 story.append(Spacer(1, 8))
 story.append(Paragraph("规则（Rule）", h2))
