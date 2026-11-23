@@ -1,0 +1,8 @@
+# 3D bush, Prusinkiewicz & Lindenmayer (1990), Fig. 1.25 (productions p1-p3; leaves and colours left out)
+name=3D bush
+axiom=A
+rule=A:[&FL!A]/////[&FL!A]///////[&FL!A]
+rule=F:S/////F
+rule=S:FL
+iterations=7
+angle=22.5

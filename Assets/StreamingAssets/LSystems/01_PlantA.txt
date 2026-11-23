@@ -1,0 +1,6 @@
+# Prusinkiewicz & Lindenmayer (1990), The Algorithmic Beauty of Plants, Fig. 1.24a (edge rewriting)
+name=Plant A
+axiom=F
+rule=F:F[+F]F[-F]F
+iterations=5
+angle=25.7

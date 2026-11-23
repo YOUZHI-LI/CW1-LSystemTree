@@ -1,0 +1,6 @@
+# Prusinkiewicz & Lindenmayer (1990), Fig. 1.24c (edge rewriting)
+name=Plant C
+axiom=F
+rule=F:FF-[-F+F+F]+[+F-F-F]
+iterations=4
+angle=22.5

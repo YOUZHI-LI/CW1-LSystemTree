@@ -1,0 +1,7 @@
+# Heighway dragon curve, from Bourke (1991), L-System User Notes
+name=Dragon curve
+axiom=FX
+rule=X:X+YF+
+rule=Y:-FX-Y
+iterations=10
+angle=90

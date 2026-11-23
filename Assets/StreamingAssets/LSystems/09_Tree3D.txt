@@ -1,0 +1,9 @@
+# 3D tree: a main trunk (A keeps growing) with three side branches at every node,
+# rolled around the trunk by 100 and 140 degrees. Branching pattern adapted from
+# Prusinkiewicz & Lindenmayer (1990), Fig. 2.8, without its parametric part.
+name=3D tree
+axiom=FFA
+rule=A:F[&&FA]/////[&&FA]///////[&&FA]FA
+iterations=5
+angle=20
+ratio=0.65

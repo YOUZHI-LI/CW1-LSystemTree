@@ -1,0 +1,7 @@
+# Prusinkiewicz & Lindenmayer (1990), Fig. 1.24e (node rewriting)
+name=Plant E
+axiom=X
+rule=X:F[+X][-X]FX
+rule=F:FF
+iterations=7
+angle=25.7

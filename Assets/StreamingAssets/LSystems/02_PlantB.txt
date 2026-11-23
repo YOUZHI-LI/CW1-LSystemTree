@@ -1,0 +1,6 @@
+# Prusinkiewicz & Lindenmayer (1990), Fig. 1.24b (edge rewriting)
+name=Plant B
+axiom=F
+rule=F:F[+F]F[-F][F]
+iterations=5
+angle=20

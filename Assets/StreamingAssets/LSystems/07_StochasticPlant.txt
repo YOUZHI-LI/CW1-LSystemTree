@@ -1,0 +1,9 @@
+# Stochastic L-system, Prusinkiewicz & Lindenmayer (1990), section 1.7, Fig. 1.27
+# Shift + Up/Down (or the New seed button) changes the random seed: a different plant of the same kind.
+name=Stochastic plant
+axiom=F
+rule=F:0.33:F[+F]F[-F]F
+rule=F:0.33:F[+F]F
+rule=F:0.34:F[-F]F
+iterations=5
+angle=25.7
