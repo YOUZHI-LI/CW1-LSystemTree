@@ -143,7 +143,7 @@ def pipeline():
 
 HAS_UI = os.path.exists(os.path.join(FIG, "ui.png"))
 FN = {}
-for _i, _k in enumerate(["ui"] * HAS_UI + ["pipe", "plants", "iter", "angle", "seed", "tree", "bush"], 1):
+for _i, _k in enumerate(["ui"] * HAS_UI + ["pipe", "plants", "iter", "angle", "seed", "tree", "bush", "solid"], 1):
     FN[_k] = _i
 
 ST = {}
@@ -200,7 +200,7 @@ story.append(P(
     "The arrow keys step through the iterations and change the branching angle, and with Shift they change the "
     "branch length ratio and the random seed. A menu offers the same controls with the mouse and a rule editor "
     "for trying new L-systems in Play mode. As extra features the turtle works in 3D using quaternions, "
-    "rules can be stochastic, the branches are coloured from trunk to tip, and an orbit camera lets the user "
+    "rules can be stochastic, the plant can be drawn as lines or as 3D branches with leaves, and an orbit camera lets the user "
     "look at the 3D models from any side.", body_ni))
 story.append(Spacer(1, 6))
 story.append(Paragraph("<i>Keywords:</i> Lindenmayer systems, turtle graphics, procedural plants, Unity, C#", body_ni))
@@ -318,6 +318,18 @@ story.append(P(
     "<b>Branch length ratio and colour.</b> Each [ multiplies the step length by the ratio, so side branches "
     f"are shorter than the stem they grow from (Figure {FN['angle']}). Every line also stores how many brackets deep it is, "
     "and its colour goes from brown at the trunk to green at the tips."))
+story.append(P(
+    "<b>3D branches and leaves.</b> A tick box in the menu switches from lines to a solid model. Each segment "
+    "becomes a six-sided tube. To build it, two directions at right angles to the segment are found with the "
+    "cross product, and six points are placed around the start and the end of the segment with cos and sin "
+    "of the angle, like points on a circle; neighbouring points are joined by two triangles. The radius is "
+    "r = r<sub>0</sub> · 0.7<sup><i>d</i></sup>, where <i>d</i> is the bracket depth, so every branch level is thinner than the one "
+    "it grows from. A leaf is added at every ] (the tip of a branch) and at every L. It is a diamond made of "
+    "two triangles whose corners are written in the turtle's own frame and turned with the turtle's quaternion, "
+    "so the leaf points the same way as its branch. The trunk radius and the leaf length are a percentage of "
+    "the size of the plant, so the same settings suit a small and a large model. Branches and leaves are two "
+    "sub-meshes of one mesh, with a brown and a green material that are lit by the scene's light "
+    f"(Figure {FN['solid']})."))
 story.append(P(
     "<b>Orbit camera.</b> After each rebuild the camera is moved so that the whole model fits on the screen. "
     "Holding the right mouse button rotates the camera around the model, and the wheel zooms."))
@@ -441,6 +453,10 @@ story.append(figure(["iter3d_2.png", "iter3d_4.png", "09.png", "tree3d_top.png"]
 story.append(figure(["08.png", "10.png"], "File 8, the 3D bush, and file 10, the dragon curve.",
                     labels=["3D bush", "Dragon curve"], max_h=7 * cm))
 
+story.append(figure(["solid_A.png", "solid_E.png", "solid_tree.png", "solid_bush.png"],
+                    "The same L-systems drawn with 3D branches and leaves: Plant A, Plant E, the 3D tree and the 3D bush.",
+                    labels=["Plant A", "Plant E", "3D tree", "3D bush"], max_h=6.5 * cm))
+
 sizes = [["File", "n", "Symbols", "Lines"]]
 for k in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]:
     sizes.append([ST[k]["title"], ST[k]["n"], fmt(ST[k]["symbols"]), fmt(ST[k]["segments"])])
@@ -456,17 +472,16 @@ story.append(Paragraph("Conclusion", h1))
 story.append(P(
     "The program does what the brief asks for. It reads ten configuration files, each loaded with its own key; "
     "it draws the six required plants correctly; the iterations can be stepped with the arrow keys; and four "
-    "parameters can be changed with hotkeys. I also added a menu with a rule editor, a 3D turtle, stochastic rules, a branch length ratio, "
+    "parameters can be changed with hotkeys. I also added a menu with a rule editor, a 3D turtle, 3D branches with leaves, stochastic rules, a branch length ratio, "
     "colouring by depth and an orbit camera. Keeping the rewriting, the turtle and the drawing in separate "
     "scripts made the program easier to write and test, because I could check the strings in the console "
     "before I worked on the drawing."))
 story.append(P(
-    "The program has some clear limits. The branches are drawn as lines of one pixel, so they all look equally "
-    "thin even though the length ratio makes them shorter; drawing each segment as a cylinder whose radius "
-    "shrinks at every bracket would look much more like a real tree. The L-systems are context-free and not "
+    "The program has some clear limits. The 3D branches are separate tubes, so small gaps can be seen where "
+    "two branches meet at a large angle, and the leaves are flat and all the same shape. The L-systems are context-free and not "
     "parametric, so effects such as signals moving through the plant (context-sensitive L-systems, section 1.8 "
     "of the book) or branches whose length depends on their age (parametric L-systems, section 1.10) cannot "
-    "be expressed. Tropism, which bends branches towards gravity or light (section 2.2), and leaves would also "
+    "be expressed. Tropism, which bends branches towards gravity or light (section 2.2), would also "
     "make the 3D trees more realistic. Interactive tools such as TreeSketch (Longay et al., 2012) show how far "
     "these ideas can be taken."))
 story.append(P(f"A video demonstration of the program is available at {VIDEO_URL}."))

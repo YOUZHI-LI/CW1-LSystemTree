@@ -5,7 +5,8 @@ using UnityEngine;
 
 // Main script. Put it on an empty GameObject in the scene.
 // It loads L-systems from the text files in StreamingAssets/LSystems,
-// rebuilds the model when a hotkey or the menu changes something, and draws it as lines.
+// rebuilds the model when a hotkey or the menu changes something,
+// and draws it as lines or as 3D branches with leaves.
 public class MyLSystem : MonoBehaviour
 {
     [Header("Current L-system (loaded from a file)")]
@@ -24,16 +25,31 @@ public class MyLSystem : MonoBehaviour
     public Color trunkColour = new Color(0.35f, 0.20f, 0.08f);
     public Color tipColour = new Color(0.15f, 0.50f, 0.10f);
 
+    [Header("3D branches and leaves")]
+    public bool solidMode = false;     // false: lines,  true: 3D branches and leaves
+    public bool showLeaves = true;
+    public float trunkWidth = 0.6f;    // radius of the trunk, in % of the plant's size
+    public float widthRatio = 0.7f;    // each branch level is this much thinner
+    public float leafSize = 2f;        // length of a leaf, in % of the plant's size
+    public Color barkColour = new Color(0.45f, 0.30f, 0.15f);
+    public Color leafColour = new Color(0.30f, 0.65f, 0.20f);
+    const int sides = 6;               // each branch is a 6-sided tube
+
     string[] files;
     int currentFile;
     int symbolCount;
     int segmentCount;
+    int leafCount;
     string message = "";
     bool showMenu = true;
     string axiomText = "";   // what is typed in the menu's text boxes
     string rulesText = "";
 
     Mesh mesh;
+    MeshRenderer meshRenderer;
+    Material lineMaterial;
+    Material barkMaterial;
+    Material leafMaterial;
     MyCamera myCamera;
 
     public int SymbolCount { get { return symbolCount; } }
@@ -45,14 +61,17 @@ public class MyLSystem : MonoBehaviour
         LoadFile(0);
     }
 
-    // Creates the mesh, finds the camera and lists the config files.
+    // Creates the mesh and materials, finds the camera and lists the config files.
     public void Init()
     {
         mesh = new Mesh();
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;   // allows more than 65,535 vertices
         gameObject.AddComponent<MeshFilter>().mesh = mesh;
-        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        meshRenderer.material = new Material(Shader.Find("Sprites/Default"));   // unlit, uses vertex colours
+        meshRenderer = gameObject.AddComponent<MeshRenderer>();
+
+        lineMaterial = new Material(Shader.Find("Sprites/Default"));   // unlit, uses vertex colours
+        barkMaterial = MakeLitMaterial(barkColour);
+        leafMaterial = MakeLitMaterial(leafColour);
 
         myCamera = Camera.main.GetComponent<MyCamera>();
         if (myCamera == null) myCamera = Camera.main.gameObject.AddComponent<MyCamera>();
@@ -60,6 +79,15 @@ public class MyLSystem : MonoBehaviour
         string folder = Path.Combine(Application.streamingAssetsPath, "LSystems");
         files = Directory.GetFiles(folder, "*.txt");
         System.Array.Sort(files);
+    }
+
+    // A material lit by the scene's light, with one colour, drawn from both sides.
+    Material MakeLitMaterial(Color colour)
+    {
+        Material m = new Material(Shader.Find("Universal Render Pipeline/Simple Lit"));
+        m.SetColor("_BaseColor", colour);
+        m.SetFloat("_Cull", 0f);   // 0 = do not hide back faces, so a leaf is seen from both sides
+        return m;
     }
 
     // ---------------------------------------------------------------- loading
@@ -146,15 +174,18 @@ public class MyLSystem : MonoBehaviour
         }
         if (symbols == null) return;
 
-        List<Segment> segments = MyTurtle.Draw(symbols, angle, length, lengthRatio);
+        List<Leaf> leaves;
+        List<Segment> segments = MyTurtle.Draw(symbols, angle, length, lengthRatio, out leaves);
         symbolCount = symbols.Length;
         segmentCount = segments.Count;
+        leafCount = (solidMode && showLeaves) ? leaves.Count : 0;
 
-        BuildMesh(segments);
+        if (solidMode) BuildSolidMesh(segments, leaves);
+        else BuildMesh(segments);
         myCamera.Frame(mesh.bounds);
     }
 
-    // All lines go into ONE mesh (one draw call), coloured from brown (trunk) to green (tips).
+    // Lines: all lines go into ONE mesh (one draw call), coloured from brown (trunk) to green (tips).
     void BuildMesh(List<Segment> segments)
     {
         int maxDepth = 1;
@@ -176,10 +207,111 @@ public class MyLSystem : MonoBehaviour
         }
 
         mesh.Clear();
+        mesh.subMeshCount = 1;
         mesh.SetVertices(vertices);
         mesh.SetColors(colours);
         mesh.SetIndices(indices, MeshTopology.Lines, 0);
         mesh.RecalculateBounds();
+        meshRenderer.materials = new Material[] { lineMaterial };
+    }
+
+    // ---------------------------------------------------------------- 3D branches and leaves
+
+    // Every segment becomes a thin tube and every leaf a small diamond.
+    // The mesh has two parts (sub-meshes): 0 = branches (bark material), 1 = leaves (leaf material).
+    void BuildSolidMesh(List<Segment> segments, List<Leaf> leaves)
+    {
+        // How big is the plant? The trunk and the leaves are sized as a % of this,
+        // so they look the same on a small plant and on a big one.
+        Bounds box = new Bounds(Vector3.zero, Vector3.zero);
+        foreach (Segment s in segments)
+        {
+            box.Encapsulate(s.start);
+            box.Encapsulate(s.end);
+        }
+        float plantSize = Mathf.Max(box.size.magnitude, 1f);
+        float trunkRadius = plantSize * trunkWidth / 100f;
+        float leafLength = plantSize * leafSize / 100f;
+
+        List<Vector3> vertices = new List<Vector3>();
+        List<Vector3> normals = new List<Vector3>();
+        List<int> branchTriangles = new List<int>();
+        List<int> leafTriangles = new List<int>();
+
+        foreach (Segment s in segments)
+        {
+            // deeper branches are thinner: radius = trunk radius * 0.7^depth
+            float radius = trunkRadius * Mathf.Pow(widthRatio, s.depth);
+            AddBranch(s, radius, vertices, normals, branchTriangles);
+        }
+        if (showLeaves)
+        {
+            foreach (Leaf leaf in leaves) AddLeaf(leaf, leafLength, vertices, normals, leafTriangles);
+        }
+
+        mesh.Clear();
+        mesh.subMeshCount = 2;
+        mesh.SetVertices(vertices);
+        mesh.SetNormals(normals);
+        mesh.SetTriangles(branchTriangles, 0);
+        mesh.SetTriangles(leafTriangles, 1);
+        mesh.RecalculateBounds();
+        meshRenderer.materials = new Material[] { barkMaterial, leafMaterial };
+    }
+
+    // A tube around one segment: a ring of points at the start, a ring at the end, joined by rectangles.
+    void AddBranch(Segment s, float radius, List<Vector3> vertices, List<Vector3> normals, List<int> triangles)
+    {
+        Vector3 direction = (s.end - s.start).normalized;
+
+        // Two directions at right angles to the branch (and to each other), from the cross product.
+        Vector3 side1 = Vector3.Cross(direction, Vector3.forward);
+        if (side1.magnitude < 0.01f) side1 = Vector3.Cross(direction, Vector3.right);   // branch points along Z
+        side1.Normalize();
+        Vector3 side2 = Vector3.Cross(direction, side1);
+
+        int first = vertices.Count;
+        for (int i = 0; i < sides; i++)
+        {
+            // a point on a circle: cos and sin of the angle around the branch
+            float a = i * 2f * Mathf.PI / sides;
+            Vector3 outwards = side1 * Mathf.Cos(a) + side2 * Mathf.Sin(a);
+            vertices.Add(s.start + outwards * radius);   // vertex first + 2i      (bottom ring)
+            vertices.Add(s.end + outwards * radius);     // vertex first + 2i + 1  (top ring)
+            normals.Add(outwards);
+            normals.Add(outwards);
+        }
+
+        for (int i = 0; i < sides; i++)
+        {
+            int next = (i + 1) % sides;      // the last side joins back to the first
+            int bottom = first + 2 * i;
+            int top = bottom + 1;
+            int nextBottom = first + 2 * next;
+            int nextTop = nextBottom + 1;
+            // one rectangle = two triangles
+            triangles.Add(bottom); triangles.Add(nextTop); triangles.Add(top);
+            triangles.Add(bottom); triangles.Add(nextBottom); triangles.Add(nextTop);
+        }
+    }
+
+    // A diamond-shaped leaf pointing the same way as the turtle.
+    void AddLeaf(Leaf leaf, float size, List<Vector3> vertices, List<Vector3> normals, List<int> triangles)
+    {
+        Quaternion r = leaf.rotation;
+        Vector3 p = leaf.position;
+        int first = vertices.Count;
+
+        // The corners are written in the turtle's own frame (Y = forward), then turned with r.
+        vertices.Add(p);                                                    // base
+        vertices.Add(p + r * new Vector3(-0.3f * size, 0.5f * size, 0f));   // left
+        vertices.Add(p + r * new Vector3(0f, size, 0f));                    // tip
+        vertices.Add(p + r * new Vector3(0.3f * size, 0.5f * size, 0f));    // right
+        Vector3 normal = r * Vector3.back;
+        for (int i = 0; i < 4; i++) normals.Add(normal);
+
+        triangles.Add(first); triangles.Add(first + 1); triangles.Add(first + 2);
+        triangles.Add(first); triangles.Add(first + 2); triangles.Add(first + 3);
     }
 
     // ---------------------------------------------------------------- hotkeys
@@ -326,7 +458,29 @@ public class MyLSystem : MonoBehaviour
         if (GUILayout.Button("New seed")) { seed = Random.Range(1, 10000); message = ""; Rebuild(); }
         GUILayout.EndHorizontal();
 
+        // 3D branches and leaves
+        GUILayout.Space(6);
+        bool newSolid = GUILayout.Toggle(solidMode, "3D branches and leaves");
+        bool newLeaves = showLeaves;
+        float newWidth = trunkWidth;
+        float newLeafSize = leafSize;
+        if (solidMode)
+        {
+            newLeaves = GUILayout.Toggle(showLeaves, "Leaves");
+            newWidth = Slider("Trunk width", trunkWidth, 0.2f, 3f, "0.0");
+            newLeafSize = Slider("Leaf size", leafSize, 0.5f, 5f, "0.0");
+        }
+        if (newSolid != solidMode || newLeaves != showLeaves || newWidth != trunkWidth || newLeafSize != leafSize)
+        {
+            solidMode = newSolid;
+            showLeaves = newLeaves;
+            trunkWidth = newWidth;
+            leafSize = newLeafSize;
+            Rebuild();
+        }
+
         // view
+        GUILayout.Space(6);
         GUILayout.BeginHorizontal();
         myCamera.autoRotate = GUILayout.Toggle(myCamera.autoRotate, "Auto rotate");
         if (GUILayout.Button("Screenshot")) TakeScreenshot();
@@ -335,7 +489,9 @@ public class MyLSystem : MonoBehaviour
 
         // information and help
         GUILayout.Space(6);
-        GUILayout.Label(symbolCount + " symbols, " + segmentCount + " lines");
+        string counts = symbolCount + " symbols, " + segmentCount + " branches";
+        if (leafCount > 0) counts += ", " + leafCount + " leaves";
+        GUILayout.Label(counts);
         if (message != "") GUILayout.Label(message);
         GUILayout.Label("Hotkeys\n"
                       + "1-9, 0 (or numpad)      load file\n"

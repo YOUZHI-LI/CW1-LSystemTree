@@ -9,6 +9,13 @@ public struct Segment
     public int depth;   // how many '[' deep the segment is (0 = trunk)
 }
 
+// A place where a leaf grows: the turtle's position and direction at the end of a branch.
+public struct Leaf
+{
+    public Vector3 position;
+    public Quaternion rotation;
+}
+
 // Turtle interpretation of the string (ABOP section 1.5).
 // The turtle starts at the origin facing up (+Y). Its orientation is a Quaternion,
 // so the same code works for 2D and 3D L-systems.
@@ -16,7 +23,8 @@ public struct Segment
 //   F G   move forward and draw a line     f   move forward without drawing
 //   + -   turn left / right                & ^ pitch down / up
 //   \ /   roll left / right                |   turn around
-//   [ ]   save / restore the turtle        other symbols (X, A, L ...) are ignored
+//   [ ]   save / restore the turtle        L   leaf (a leaf is also added at every ']')
+//   other symbols (X, A ...) are ignored
 public static class MyTurtle
 {
     struct State
@@ -27,9 +35,11 @@ public static class MyTurtle
         public int depth;
     }
 
-    public static List<Segment> Draw(string symbols, float angle, float length, float lengthRatio)
+    // Returns the lines; the leaf positions come back in "leaves".
+    public static List<Segment> Draw(string symbols, float angle, float length, float lengthRatio, out List<Leaf> leaves)
     {
         List<Segment> segments = new List<Segment>();
+        leaves = new List<Leaf>();
         Stack<State> stack = new Stack<State>();
 
         State turtle = new State();
@@ -72,12 +82,25 @@ public static class MyTurtle
                     turtle.depth++;
                     turtle.length *= lengthRatio;
                     break;
+                case 'L':
+                    leaves.Add(MakeLeaf(turtle));
+                    break;
                 case ']':
-                    // Go back to where the branch started.
+                    // The turtle is at the tip of a branch: put a leaf here,
+                    // then go back to where the branch started.
+                    leaves.Add(MakeLeaf(turtle));
                     if (stack.Count > 0) turtle = stack.Pop();
                     break;
             }
         }
         return segments;
+    }
+
+    static Leaf MakeLeaf(State turtle)
+    {
+        Leaf leaf = new Leaf();
+        leaf.position = turtle.position;
+        leaf.rotation = turtle.rotation;
+        return leaf;
     }
 }
