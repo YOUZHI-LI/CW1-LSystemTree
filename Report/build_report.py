@@ -26,7 +26,7 @@ MODULE = "Mathematics and Graphics for Computer Games 1"
 PROGRAMME = "MSc Computer Game Programming"
 INSTITUTION = "Goldsmiths, University of London"
 DATE = "23 / 11 / 2026"
-VIDEO_URL = "[add your YouTube link here]"
+VIDEO_URL = "https://youtu.be/BUrIMRFPZxQ"
 RUNNING_HEAD = "L-SYSTEM PLANT GENERATOR"
 
 # ---------------------------------------------------------------- fonts and styles
@@ -143,7 +143,7 @@ def pipeline():
 
 HAS_UI = os.path.exists(os.path.join(FIG, "ui.png"))
 FN = {}
-for _i, _k in enumerate(["ui"] * HAS_UI + ["pipe", "plants", "iter", "angle", "seed", "tree", "bush", "solid"], 1):
+for _i, _k in enumerate(["ui"] * HAS_UI + ["run3d", "inspector", "pipe", "plants", "iter", "angle", "seed", "tree", "bush", "solid"], 1):
     FN[_k] = _i
 
 ST = {}
@@ -214,21 +214,20 @@ story.append(P(
     "growth of simple organisms (Lindenmayer, 1968). It has three parts: an alphabet of symbols, a starting "
     "string called the <i>axiom</i>, and a set of <i>production rules</i> that say what each symbol turns into. "
     "In each derivation step every symbol in the string is replaced at the same time. For example, with the "
-    "axiom A and the rules A → AB and B → A, the first generations are A, AB, ABA, ABAAB and ABAABABA. "
-    "Their lengths 1, 2, 3, 5, 8 are the Fibonacci numbers."))
+    "axiom A and the rules A → AB and B → A, the first generations are A, AB, ABA, ABAAB and ABAABABA."))
 story.append(P(
     "On its own an L-system only produces strings. Prusinkiewicz (1986) showed that the strings become "
     "pictures of plants when each symbol is read as a command for a turtle, a drawing cursor in the style of "
     "LOGO (Abelson &amp; diSessa, 1981): F means move forward and draw, + and − mean turn, and the brackets "
     "[ and ] save and restore the turtle so that a branch can grow and the turtle can then return to the stem. "
     "These ideas are explained in detail in <i>The Algorithmic Beauty of Plants</i> (Prusinkiewicz &amp; "
-    "Lindenmayer, 1990), which I used as my main reference."))
+    "Lindenmayer, 1990)."))
 story.append(P(
     "My objectives followed the coursework brief: read L-system parameters from configuration files, display "
     "the model, step through the iterations with hotkeys, load at least eight different files with hotkeys "
     "(six of them the plants in Figure 1.24 of the book), and change at least three parameters with hotkeys. "
     "I also wanted to try two of the suggested extra features, 3D and stochastic L-systems, while keeping the "
-    "code short enough that I could explain every line of it."))
+    "code short."))
 
 # ---------------------------------------------------------------- features
 story.append(Paragraph("Features", h1))
@@ -329,10 +328,16 @@ story.append(P(
     "so the leaf points the same way as its branch. The trunk radius and the leaf length are a percentage of "
     "the size of the plant, so the same settings suit a small and a large model. Branches and leaves are two "
     "sub-meshes of one mesh, with a brown and a green material that are lit by the scene's light "
-    f"(Figure {FN['solid']})."))
+    f"(Figure {FN['solid']}). Figure {FN['run3d']} shows the running program with the box unticked and ticked."))
+story.append(figure(["run3d_off.png", "run3d_on.png"],
+                    "The program running with file 9, the 3D tree. Left: lines. Right: 3D branches and leaves "
+                    "(the box is ticked in the menu).",
+                    labels=["3D branches and leaves off", "3D branches and leaves on"]))
 story.append(P(
     "<b>Orbit camera.</b> After each rebuild the camera is moved so that the whole model fits on the screen. "
-    "Holding the right mouse button rotates the camera around the model, and the wheel zooms."))
+    "Holding the right mouse button rotates the camera around the model, the wheel zooms, and the Auto rotate "
+    "box turns it slowly. The camera is moved in LateUpdate, after all Update calls of the frame, so it always "
+    "uses the model that was rebuilt in the same frame."))
 story.append(P(
     "<b>Icon buttons.</b> A column of three buttons with icons sits next to the menu: one quits the program "
     "(in the editor it stops Play mode), one cycles the background through light grey, dark and sky blue, and "
@@ -345,10 +350,14 @@ story.append(Paragraph("Data Classes and Structures", h1))
 story.append(P(
     "The program has five scripts. MyLSystem is the MonoBehaviour that is placed in the scene, and it adds "
     "MyCamera and MyButtons when the program starts; the other two hold the L-system logic and do not depend "
-    "on the scene."))
+    f"on the scene. Figure {FN['inspector']} shows the MyLSystem component in the Inspector while the 3D tree is "
+    "loaded: the fields at the top hold the L-system that was read from the file, and the settings below, such "
+    "as the iteration limit, the colours and the size of the trunk and leaves, can be changed in the editor."))
+story.append(figure(["inspector.png"], "The MyLSystem component in the Unity Inspector in Play mode, with file 9 "
+                    "(the 3D tree) loaded.", max_h=10 * cm))
 classes = [["Script", "Contents", "Purpose"],
            ["MyRewriter.cs", "class Rule, static class MyRewriter", "Stores one rule; rewrites the axiom n times"],
-           ["MyTurtle.cs", "struct Segment, static class MyTurtle", "Reads the string and returns the line segments"],
+           ["MyTurtle.cs", "structs Segment and Leaf, static class MyTurtle", "Reads the string; returns the segments and leaves"],
            ["MyLSystem.cs", "class MyLSystem : MonoBehaviour", "Loads files, hotkeys, menu, builds the mesh"],
            ["MyCamera.cs", "class MyCamera : MonoBehaviour", "Frames the model, orbits around it, rotation lock"],
            ["MyButtons.cs", "class MyButtons : MonoBehaviour", "Quit, background colour and lock buttons"]]
@@ -382,8 +391,8 @@ story.append(KeepTogether([pipeline(), Paragraph(
     f"<font name='Serif-BoldItalic'>Figure {fig_no[0]}</font> What happens when a file is loaded or a parameter changes.",
     caption)]))
 steps = [
-    f"<b>Start-up.</b> {M('Init()')} creates the mesh and the material, adds the camera script and lists the "
-    f"text files in alphabetical order. The first file is then loaded.",
+    f"<b>Start-up.</b> {M('Init()')} creates the mesh and the three materials (lines, bark, leaves), adds "
+    f"the camera and button scripts and lists the text files in alphabetical order. The first file is then loaded.",
     f"<b>Loading.</b> {M('LoadFile()')} reads the file line by line, splits each line at the first = sign and "
     f"stores the value in the matching field. Numbers are parsed with the invariant culture, so 25.7 is read "
     f"correctly on computers set to languages that use a decimal comma.",
@@ -481,7 +490,7 @@ story.append(P(
     "The program does what the brief asks for. It reads ten configuration files, each loaded with its own key; "
     "it draws the six required plants correctly; the iterations can be stepped with the arrow keys; and four "
     "parameters can be changed with hotkeys. I also added a menu with a rule editor, a 3D turtle, 3D branches with leaves, stochastic rules, a branch length ratio, "
-    "colouring by depth and an orbit camera. Keeping the rewriting, the turtle and the drawing in separate "
+    "colouring by depth, an orbit camera and icon buttons for quitting, the background colour and a rotation lock. Keeping the rewriting, the turtle and the drawing in separate "
     "scripts made the program easier to write and test, because I could check the strings in the console "
     "before I worked on the drawing."))
 story.append(P(
@@ -490,9 +499,8 @@ story.append(P(
     "parametric, so effects such as signals moving through the plant (context-sensitive L-systems, section 1.8 "
     "of the book) or branches whose length depends on their age (parametric L-systems, section 1.10) cannot "
     "be expressed. Tropism, which bends branches towards gravity or light (section 2.2), would also "
-    "make the 3D trees more realistic. Interactive tools such as TreeSketch (Longay et al., 2012) show how far "
-    "these ideas can be taken."))
-story.append(P(f"A video demonstration of the program is available at {VIDEO_URL}."))
+    "make the 3D trees more realistic."))
+story.append(P(f"A video demonstration of the program is available at <link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>."))
 story.append(Spacer(1, 8))
 wc_pos = len(story)
 story.append(Paragraph("", body_ni))
@@ -506,9 +514,6 @@ for r in [
     "Bourke, P. (1991). <i>L-system user notes</i>. Retrieved from http://paulbourke.net/fractals/lsys/",
     "Lindenmayer, A. (1968). Mathematical models for cellular interactions in development, Parts I and II. "
     "<i>Journal of Theoretical Biology, 18</i>(3), 280–315.",
-    "Longay, S., Runions, A., Boudon, F., &amp; Prusinkiewicz, P. (2012). TreeSketch: Interactive procedural "
-    "modeling of trees on a tablet. In <i>Proceedings of the International Symposium on Sketch-Based Interfaces "
-    "and Modeling</i> (pp. 107–120). Eurographics Association.",
     "Prusinkiewicz, P. (1986). Graphical applications of L-systems. In <i>Proceedings of Graphics Interface '86</i> "
     "(pp. 247–253). Canadian Information Processing Society.",
     "Prusinkiewicz, P., &amp; Lindenmayer, A. (1990). <i>The algorithmic beauty of plants</i>. Springer-Verlag. "

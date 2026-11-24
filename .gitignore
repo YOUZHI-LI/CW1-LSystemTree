@@ -23,3 +23,6 @@
 
 # Python cache
 __pycache__/
+
+# Word / Office lock files
+~$*

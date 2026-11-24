@@ -3,10 +3,6 @@ using System.Globalization;
 using System.IO;
 using UnityEngine;
 
-// Main script. Put it on an empty GameObject in the scene.
-// It loads L-systems from the text files in StreamingAssets/LSystems,
-// rebuilds the model when a hotkey or the menu changes something,
-// and draws it as lines or as 3D branches with leaves.
 public class MyLSystem : MonoBehaviour
 {
     [Header("Current L-system (loaded from a file)")]
@@ -16,7 +12,7 @@ public class MyLSystem : MonoBehaviour
     public int iterations;
     public float angle;
     public float length = 1f;
-    public float lengthRatio = 1f;   // each branch is this much shorter than its parent
+    public float lengthRatio = 1f;   
     public int seed = 1;
 
     [Header("Settings")]
@@ -26,14 +22,17 @@ public class MyLSystem : MonoBehaviour
     public Color tipColour = new Color(0.15f, 0.50f, 0.10f);
 
     [Header("3D branches and leaves")]
-    public bool solidMode = false;     // false: lines,  true: 3D branches and leaves
+    public bool solidMode = false;     
     public bool showLeaves = true;
     public float trunkWidth = 0.6f;    // radius of the trunk, in % of the plant's size
     public float widthRatio = 0.7f;    // each branch level is this much thinner
-    public float leafSize = 2f;        // length of a leaf, in % of the plant's size
+
+    // length of a leaf, in % of the plant's size
+    public float leafSize = 2f;        
     public Color barkColour = new Color(0.45f, 0.30f, 0.15f);
     public Color leafColour = new Color(0.30f, 0.65f, 0.20f);
-    const int sides = 6;               // each branch is a 6-sided tube
+    // each branch is a 6-sided tube
+    const int sides = 6;               
 
     string[] files;
     int currentFile;
@@ -42,7 +41,7 @@ public class MyLSystem : MonoBehaviour
     int leafCount;
     string message = "";
     bool showMenu = true;
-    string axiomText = "";   // what is typed in the menu's text boxes
+    string axiomText = ""; 
     string rulesText = "";
 
     Mesh mesh;
@@ -85,7 +84,10 @@ public class MyLSystem : MonoBehaviour
     // A material lit by the scene's light, with one colour, drawn from both sides.
     Material MakeLitMaterial(Color colour)
     {
-        Material m = new Material(Shader.Find("Universal Render Pipeline/Simple Lit"));
+        // Copy the material in Assets/Resources/Materials (URP Simple Lit).
+        // It must be a real material asset: Unity leaves out of a build every shader that no asset uses,
+        // so Shader.Find("Universal Render Pipeline/Simple Lit") would return null in the built game.
+        Material m = new Material(Resources.Load<Material>("Materials/PlantLit"));
         m.SetColor("_BaseColor", colour);
         m.SetFloat("_Cull", 0f);   // 0 = do not hide back faces, so a leaf is seen from both sides
         return m;

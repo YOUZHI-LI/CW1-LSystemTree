@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-// Orbit camera: right mouse drag rotates around the tree, the wheel zooms,
-// Space turns the slow automatic rotation on or off.
 public class MyCamera : MonoBehaviour
 {
     public float yaw = 0f;
     public float pitch = 0f;
     public bool autoRotate = false;
-    public bool rotationLocked = false;   // true: mouse drag and auto rotate do nothing
+    public bool rotationLocked = false;   
 
     Vector3 target;
     float distance = 10f;
@@ -19,17 +17,18 @@ public class MyCamera : MonoBehaviour
         cam = GetComponent<Camera>();
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = new Color(0.95f, 0.96f, 0.94f);
-        // Turn off the scene's post-processing (tone mapping, vignette) so the lines keep their real colours.
+
+        
         cam.GetUniversalAdditionalCameraData().renderPostProcessing = false;
     }
 
-    // Moves the camera so that the whole box is in view.
+    
     public void Frame(Bounds bounds)
     {
         if (cam == null) Awake();
         target = bounds.center;
         float radius = bounds.extents.magnitude;
-        // The view cone touches a sphere of this radius when sin(fov / 2) = radius / distance.
+        
         float halfFov = cam.fieldOfView * 0.5f * Mathf.Deg2Rad;
         if (cam.aspect < 1f) halfFov = Mathf.Atan(Mathf.Tan(halfFov) * cam.aspect);
         distance = radius / Mathf.Sin(halfFov) * 1.05f;
@@ -38,7 +37,7 @@ public class MyCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        // When the rotation is locked, the view only zooms.
+        
         if (!rotationLocked)
         {
             if (Input.GetMouseButton(1))

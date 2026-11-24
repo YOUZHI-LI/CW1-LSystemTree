@@ -166,7 +166,7 @@ def pipeline():
 
 HAS_UI = os.path.exists(os.path.join(FIG, "ui.png"))
 FN = {}
-for _i, _k in enumerate(["ui"] * HAS_UI + ["pipe", "plants", "iter", "angle", "seed", "tree", "bush", "solid"], 1):
+for _i, _k in enumerate(["ui"] * HAS_UI + ["run3d", "inspector", "pipe", "plants", "iter", "angle", "seed", "tree", "bush", "solid"], 1):
     FN[_k] = _i
 
 ST = {}
@@ -236,16 +236,16 @@ story.append(P(
     "L-系统是生物学家 Aristid Lindenmayer 为模拟简单生物的生长而提出的一种字符串重写系统（Lindenmayer, 1968）。"
     "它由三部分组成：一个符号字母表、一个称为<i>公理</i>的初始字符串，以及一组说明每个符号会变成什么的<i>产生式规则</i>。"
     "每一步推导中，字符串里的所有符号同时被替换。例如，公理为 A、规则为 A → AB 和 B → A 时，前几代依次是 "
-    "A、AB、ABA、ABAAB 和 ABAABABA，它们的长度 1、2、3、5、8 正是斐波那契数列。"))
+    "A、AB、ABA、ABAAB 和 ABAABABA。"))
 story.append(P(
     "L-系统本身只产生字符串。Prusinkiewicz（1986）指出，如果把每个符号当作给海龟的一条命令，字符串就能变成植物的图像。"
     "海龟是一种 LOGO 风格的绘图光标（Abelson &amp; diSessa, 1981）：F 表示向前移动并画线，+ 和 − 表示转向，"
     "方括号 [ 和 ] 分别保存和恢复海龟的状态，这样就能长出一根树枝，再回到主干上。这些思想在"
-    "《植物的算法之美》（Prusinkiewicz &amp; Lindenmayer, 1990）中有详细讲解，这本书是我的主要参考资料。"))
+    "《植物的算法之美》（Prusinkiewicz &amp; Lindenmayer, 1990）中有详细讲解。"))
 story.append(P(
     "我的目标按照作业要求设定：从配置文件读取 L-系统参数，显示模型，用热键逐步改变迭代次数，用热键加载至少八个不同的文件"
     "（其中六个是书中图 1.24 的植物），并用热键改变至少三个参数。我还想尝试两个建议的额外功能——3D 和随机 L-系统，"
-    "同时让代码保持足够简短，使我能解释其中的每一行。"))
+    "同时让代码保持足够简短。"))
 
 # ---------------------------------------------------------------- features
 story.append(Paragraph("功能", h1))
@@ -330,9 +330,13 @@ story.append(P(
     "叶子是由两个三角形组成的菱形，它的顶点先在海龟自身的坐标系中写出，再用海龟的四元数旋转，因此叶子与所在树枝朝向一致。"
     "树干半径和叶子长度都取植物尺寸的一个百分比，所以同一组设置对小模型和大模型都适用。"
     "树枝和叶子是同一个网格的两个子网格，分别使用受场景光照影响的棕色和绿色材质"
-    f"（图 {FN['solid']}）。"))
+    f"（图 {FN['solid']}）。图 {FN['run3d']} 是程序运行时取消勾选和勾选该选项的对比。"))
+story.append(figure(["run3d_off.png", "run3d_on.png"],
+                    "程序运行界面，加载文件 9（3D 树）。左：线条；右：3D 树枝和叶子（在菜单中勾选该选项）。",
+                    labels=["关闭 3D 树枝和叶子", "开启 3D 树枝和叶子"]))
 story.append(P(
-    "<b>轨道相机。</b>每次重新生成后，相机都会移动到能完整显示模型的位置。按住鼠标右键可绕模型旋转相机，滚轮用于缩放。"))
+    "<b>轨道相机。</b>每次重新生成后，相机都会移动到能完整显示模型的位置。按住鼠标右键可绕模型旋转相机，滚轮用于缩放，勾选 Auto rotate 后相机会缓慢自动旋转。"
+    "相机在 LateUpdate 中移动，它在同一帧所有 Update 之后执行，因此总能用上本帧刚重新生成的模型。"))
 story.append(P(
     "<b>图标按钮。</b>菜单旁边有一列三个带图标的按钮：一个退出程序（在编辑器中则停止 Play 模式），一个让背景在浅灰、深色和天蓝之间切换，"
     "一个锁定相机旋转，这样在调整参数时视角不会被意外转动；挂锁图标显示当前是否锁定。鼠标悬停在按钮上时会显示按钮名称。"
@@ -342,10 +346,14 @@ story.append(P(
 story.append(Paragraph("数据类与数据结构", h1))
 story.append(P(
     "程序共有五个脚本。MyLSystem 是放在场景中的 MonoBehaviour，程序启动时它会自动添加 MyCamera 和 MyButtons；"
-    "另外两个脚本负责 L-系统的逻辑，不依赖于场景。"))
+    "另外两个脚本负责 L-系统的逻辑，不依赖于场景。"
+    f"图 {FN['inspector']} 是加载 3D 树时 MyLSystem 组件在 Inspector 中的样子：上方的字段保存从文件读入的 L-系统，"
+    "下方的设置（如迭代上限、颜色、树干和叶子的大小）可以在编辑器中修改。"))
+story.append(figure(["inspector.png"], "Play 模式下 Unity Inspector 中的 MyLSystem 组件，已加载文件 9（3D 树）。",
+                    max_h=10 * cm))
 classes = [["脚本", "内容", "用途"],
            ["MyRewriter.cs", "class Rule, static class MyRewriter", "保存一条规则；把公理重写 n 次"],
-           ["MyTurtle.cs", "struct Segment, static class MyTurtle", "读取字符串，返回线段列表"],
+           ["MyTurtle.cs", "struct Segment、Leaf, static class MyTurtle", "读取字符串，返回线段和叶子列表"],
            ["MyLSystem.cs", "class MyLSystem : MonoBehaviour", "加载文件、热键、菜单、生成网格"],
            ["MyCamera.cs", "class MyCamera : MonoBehaviour", "让模型充满画面、绕其旋转、旋转锁定"],
            ["MyButtons.cs", "class MyButtons : MonoBehaviour", "退出、背景颜色和锁定按钮"]]
@@ -374,7 +382,7 @@ fig_no[0] += 1
 story.append(KeepTogether([pipeline(), Paragraph(
     f"<font name='Hei'>图 {fig_no[0]}</font>  加载文件或修改参数时的处理流程。", caption)]))
 steps = [
-    f"<b>启动。</b>{M('Init()')} 创建网格和材质，添加相机脚本，并按字母顺序列出文本文件，然后加载第一个文件。",
+    f"<b>启动。</b>{M('Init()')} 创建网格和三种材质（线条、树皮、叶子），添加相机脚本和按钮脚本，并按字母顺序列出文本文件，然后加载第一个文件。",
     f"<b>加载。</b>{M('LoadFile()')} 逐行读取文件，在第一个 = 号处把每行分开，把值存入对应的字段。"
     f"数字用固定区域设置（invariant culture）解析，所以在使用小数逗号的语言环境下 25.7 也能被正确读取。",
     f"<b>重写。</b>{M('MyRewriter.Generate()')} 重复重写 n 次。每次迭代读取当前字符串，把结果写入一个新的 "
@@ -461,13 +469,13 @@ story.append(Paragraph("结论", h1))
 story.append(P(
     "程序完成了作业要求：它读取十个配置文件，每个文件有自己的加载键；正确绘制了要求的六种植物；可以用方向键逐步改变迭代次数；"
     "并且可以用热键改变四个参数。我还加入了带规则编辑器的菜单、3D 海龟、带叶子的 3D 树枝、随机规则、分枝长度比例、"
-    "按深度着色和轨道相机。把重写、海龟和绘制分在不同脚本中，让程序更容易编写和测试，因为我可以先在控制台检查字符串，再去做绘制部分。"))
+    "按深度着色、轨道相机，以及退出、切换背景颜色和锁定旋转的图标按钮。把重写、海龟和绘制分在不同脚本中，让程序更容易编写和测试，因为我可以先在控制台检查字符串，再去做绘制部分。"))
 story.append(P(
     "程序也有一些明显的局限。3D 树枝是一根根独立的管子，所以两根树枝以较大角度相接处能看到小缝隙，叶子也是平的，形状都一样。"
     "这些 L-系统是上下文无关且非参数化的，所以无法表达在植物中传递信号的效果（上下文相关 L-系统，书中 1.8 节）"
     "或长度取决于年龄的树枝（参数化 L-系统，1.10 节）。向性（tropism）能让树枝朝重力或光线方向弯曲（2.2 节），"
-    "也会让 3D 树更逼真。TreeSketch（Longay et al., 2012）这样的交互式工具展示了这些思想能走多远。"))
-story.append(P(f"程序的视频演示：{VIDEO_URL}。"))
+    "也会让 3D 树更逼真。"))
+story.append(P(f"程序的视频演示：<link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>。"))
 story.append(Spacer(1, 8))
 wc_pos = len(story)
 story.append(Paragraph("", body_ni))
@@ -481,9 +489,6 @@ for r in [
     "Bourke, P. (1991). <i>L-system user notes</i>. Retrieved from http://paulbourke.net/fractals/lsys/",
     "Lindenmayer, A. (1968). Mathematical models for cellular interactions in development, Parts I and II. "
     "<i>Journal of Theoretical Biology, 18</i>(3), 280–315.",
-    "Longay, S., Runions, A., Boudon, F., &amp; Prusinkiewicz, P. (2012). TreeSketch: Interactive procedural "
-    "modeling of trees on a tablet. In <i>Proceedings of the International Symposium on Sketch-Based Interfaces "
-    "and Modeling</i> (pp. 107–120). Eurographics Association.",
     "Prusinkiewicz, P. (1986). Graphical applications of L-systems. In <i>Proceedings of Graphics Interface '86</i> "
     "(pp. 247–253). Canadian Information Processing Society.",
     "Prusinkiewicz, P., &amp; Lindenmayer, A. (1990). <i>The algorithmic beauty of plants</i>. Springer-Verlag. "

@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// Three icon buttons next to the menu: quit, change the background colour, lock the camera rotation.
-// MyLSystem adds this script automatically. The icons are in Assets/Resources/Icons.
+
 public class MyButtons : MonoBehaviour
 {
     public Color[] backgrounds =
@@ -17,7 +16,7 @@ public class MyButtons : MonoBehaviour
 
     void Start()
     {
-        // Resources.Load finds files inside any folder called "Resources" (no file extension).
+        
         quitIcon = Resources.Load<Texture2D>("Icons/quit");
         backgroundIcon = Resources.Load<Texture2D>("Icons/background");
         lockClosedIcon = Resources.Load<Texture2D>("Icons/lock_closed");
@@ -27,11 +26,11 @@ public class MyButtons : MonoBehaviour
 
     void OnGUI()
     {
-        // a column of 40 x 40 buttons, just to the right of the menu (the menu is 360 wide, starting at x = 10)
+        
         float x = 378;
         float size = 40;
 
-        // 1. quit
+        //quit
         if (GUI.Button(new Rect(x, 10, size, size), new GUIContent(quitIcon, "Quit")))
         {
 #if UNITY_EDITOR
@@ -41,14 +40,14 @@ public class MyButtons : MonoBehaviour
 #endif
         }
 
-        // 2. background colour: go to the next colour in the list
+        //background colour
         if (GUI.Button(new Rect(x, 10 + 50, size, size), new GUIContent(backgroundIcon, "Background colour")))
         {
             backgroundIndex = (backgroundIndex + 1) % backgrounds.Length;
             Camera.main.backgroundColor = backgrounds[backgroundIndex];
         }
 
-        // 3. camera rotation lock: the icon shows the current state
+        //camera rotation lock: the icon shows the current state
         Texture2D lockIcon = myCamera.rotationLocked ? lockClosedIcon : lockOpenIcon;
         string lockText = myCamera.rotationLocked ? "Rotation locked" : "Rotation unlocked";
         if (GUI.Button(new Rect(x, 10 + 100, size, size), new GUIContent(lockIcon, lockText)))
