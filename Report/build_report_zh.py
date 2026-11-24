@@ -34,6 +34,7 @@ PROGRAMME = _setting("PROGRAMME")
 INSTITUTION = _setting("INSTITUTION")
 DATE = _setting("DATE")
 VIDEO_URL = _setting("VIDEO_URL")
+REPO_URL = _setting("REPO_URL")
 if VIDEO_URL.startswith("[add"):
     VIDEO_URL = "[在此填写 YouTube 链接]"
 RUNNING_HEAD = "L-系统植物生成器"
@@ -475,10 +476,20 @@ story.append(P(
     "这些 L-系统是上下文无关且非参数化的，所以无法表达在植物中传递信号的效果（上下文相关 L-系统，书中 1.8 节）"
     "或长度取决于年龄的树枝（参数化 L-系统，1.10 节）。向性（tropism）能让树枝朝重力或光线方向弯曲（2.2 节），"
     "也会让 3D 树更逼真。"))
-story.append(P(f"程序的视频演示：<link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>。"))
+story.append(Spacer(1, 4))
+story.append(P(f"视频演示：<link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>", body_ni))
+story.append(P(f"源代码（GitHub）：<link href='{REPO_URL}' color='blue'><u>{REPO_URL}</u></link>", body_ni))
 story.append(Spacer(1, 8))
 wc_pos = len(story)
 story.append(Paragraph("", body_ni))
+
+# ---------------------------------------------------------------- AI declaration
+story.append(Paragraph("AI 使用声明", h1))
+story.append(Paragraph(
+    "本项目的主要框架由我自行完成，包括程序结构、L-系统重写、海龟绘图、配置文件、菜单和 Unity 场景。"
+    "我使用了 AI 助手 Claude（Anthropic）完成以下工作：润色本报告的语言并整理格式；帮助我调试错误；"
+    "帮助我学习项目涉及的知识（例如 L-系统、四元数和网格构建）；以及制作美术素材（按钮图标）。"
+    "项目和报告中使用的所有内容都经过我本人的检查和测试。", body))
 
 # ---------------------------------------------------------------- references
 story.append(PageBreak())

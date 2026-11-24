@@ -27,6 +27,7 @@ PROGRAMME = "MSc Computer Game Programming"
 INSTITUTION = "Goldsmiths, University of London"
 DATE = "23 / 11 / 2026"
 VIDEO_URL = "https://youtu.be/BUrIMRFPZxQ"
+REPO_URL = "https://github.com/YOUZHI-LI/CW1-LSystemTree"
 RUNNING_HEAD = "L-SYSTEM PLANT GENERATOR"
 
 # ---------------------------------------------------------------- fonts and styles
@@ -500,10 +501,22 @@ story.append(P(
     "of the book) or branches whose length depends on their age (parametric L-systems, section 1.10) cannot "
     "be expressed. Tropism, which bends branches towards gravity or light (section 2.2), would also "
     "make the 3D trees more realistic."))
-story.append(P(f"A video demonstration of the program is available at <link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>."))
+story.append(Spacer(1, 4))
+story.append(P(f"Video demonstration: <link href='{VIDEO_URL}' color='blue'><u>{VIDEO_URL}</u></link>", body_ni))
+story.append(P(f"Source code (GitHub): <link href='{REPO_URL}' color='blue'><u>{REPO_URL}</u></link>", body_ni))
 story.append(Spacer(1, 8))
 wc_pos = len(story)
 story.append(Paragraph("", body_ni))
+
+# ---------------------------------------------------------------- AI declaration
+story.append(Paragraph("AI Use Declaration", h1))
+story.append(Paragraph(
+    "The main framework of this project was built by me: the program structure, the L-system rewriting, the "
+    "turtle, the configuration files, the menu and the Unity scene. I used Claude (Anthropic), an AI assistant, "
+    "for the following tasks: polishing the language of this report and arranging its formatting; helping me "
+    "debug errors; helping me learn the topics of the project (for example L-systems, quaternions and building "
+    "meshes); and making the art assets (the icons of the buttons). I checked and tested everything that I "
+    "used in the project and in this report.", body))
 
 # ---------------------------------------------------------------- references
 story.append(PageBreak())
